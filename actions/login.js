@@ -3,6 +3,7 @@ import {LoginSchema} from "@/schemas";
 import {signIn} from '@/auth'
 import {DEFAULT_LOGIN_REDIRECT} from "@/routes";
 import {AuthError} from "next-auth";
+import {getUserByEmail} from "@/data/user";
 
 export const login = async (prevState, formData) => {
     const email = formData.get('email')
@@ -11,6 +12,16 @@ export const login = async (prevState, formData) => {
 
     if(!validatedFields) {
         return {error: 'Invalid fields'}
+    }
+
+    const existingUser = await getUserByEmail(email)
+
+    if(!existingUser || !existingUser.email || !existingUser.password) {
+        return 'Email does not exist'
+    }
+
+    if(!existingUser.emailVerified) {
+        return 'check your count'
     }
 
     try {

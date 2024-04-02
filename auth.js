@@ -11,6 +11,10 @@ export const {
     signOut
 } = NextAuth({
     callbacks: {
+        async signIn({user}) {
+            const existingUser = await getUserById(user.id)
+            return existingUser?.emailVerified;
+        },
         async session({token, session}) {
             if(token.sub && session.user) {
                 session.user.id = token.sub

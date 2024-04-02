@@ -47,3 +47,10 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
+
+model VerificationCode {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  code       Int
+  expires_at DateTime
+}

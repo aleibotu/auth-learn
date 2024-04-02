@@ -3,25 +3,34 @@ import bcrypt from 'bcryptjs'
 import {RegisterSchema} from "@/schemas";
 import {db} from "@/lib/db";
 import {getUserByEmail} from "@/data/user";
+import {login} from "@/actions/login";
 
 export const register = async (prevState, formData) => {
-    const name = formData.get('name')
     const email = formData.get('email')
     const password = formData.get('password')
-    const validatedFields = RegisterSchema.safeParse({name, email, password});
+    const verificationCode = formData.get('verificationCode')
+    const validatedFields = RegisterSchema.safeParse({email, password});
 
-    if(!validatedFields.success) {
+    if (!validatedFields.success) {
         return 'Invalid fields'
     }
 
-    console.log(name, email, password)
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const user = await getUserByEmail(email)
 
-    if(user) return 'email already in use'
+    if (user) return 'email already in use'
 
-    await db.user.create({data: {name, email, password: hashedPassword}})
+    const register = await db.verificationCode.findUnique({where: {email}});
+
+    // 比较 code 时间 现在 < 过期, 就是没过期
+    const expires = new Date() < register.expires_at
+
+    if (!register || !expires || String(register.code) !== verificationCode) return 'code wrong, retry'
+
+    await db.user.create({data: {email, password: hashedPassword, emailVerified: new Date()}})
+
+    await login(undefined, formData)
 
     return 'user created'
 }
