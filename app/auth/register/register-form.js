@@ -1,51 +1,64 @@
 'use client'
 import {ExclamationCircleIcon, KeyIcon, AtSymbolIcon} from "@heroicons/react/24/outline";
-import {ArrowRightIcon} from "@heroicons/react/20/solid";
+import {ArrowRightIcon, CheckBadgeIcon} from "@heroicons/react/20/solid";
 import clsx from "clsx";
 import Link from "next/link";
 import {register} from "@/actions/register";
 import {sendEmail} from "@/actions/sendEmail";
-import {useEffect, useState} from "react";
-import {useFormState, useFormStatus} from "react-dom";
+import {useEffect, useState, useTransition} from "react";
 
-/**
- * 可以分开， 然后变成两个state, 返回也用 object, not string, 就行， 改写一下。
- * @returns {JSX.Element}
- * @constructor
- */
 export default function SignupForm() {
-    const [errorMessage, dispatch] = useFormState(register, undefined);
     const [time, setTime] = useState(60);
-    const [timerRunning, setTimerRunning] = useState(false);
+    const [running, setRunning] = useState(false);
+    const [msg, setMsg] = useState({success: true, msg: null});
+
+    const [sending, startSending] = useTransition();
+    const [pending, startPending] = useTransition();
 
     useEffect(() => {
         let timer = null;
-        if (timerRunning) {
+        console.log(msg)
+        if (running && msg?.success) {
             timer = setInterval(() => {
-                setTime(prevTime => {
-                    if (prevTime === 0) {
-                        clearInterval(timer);
-                        setTimerRunning(false);
-                        return 0;
+                setTime(prev => {
+                    if (prev === 0) {
+                        clearInterval(timer)
+                        setRunning(false)
+                        return 0
                     } else {
-                        return prevTime - 1;
+                        return prev - 1
                     }
-                });
-            }, 1000);
-        }
-        return () => clearInterval(timer);
-    }, [time, timerRunning]);
+                })
+            }, 1000)
 
-    const resetTimer = async (formData) => {
-        if (!timerRunning) {
-            setTime(60); // Reset time to 300 seconds
-            setTimerRunning(true); // Start the timer again
-            return await sendEmail(formData)
+        } else {
+            clearInterval(timer)
+            setRunning(false)
         }
-    };
+
+        return () => clearInterval(timer)
+    }, [msg, running])
+
+    const handleOther = (formData) => {
+        if (!running && !sending) {
+            setRunning(true)
+            setTime(60)
+            startSending(() => {
+                sendEmail(formData).then(m => setMsg(m))
+            })
+        }
+    }
+
+    const handleSubmit = (formData) => {
+        if (!pending) {
+            startPending(() => {
+                register(formData).then(m => setMsg(m))
+            })
+        }
+    }
 
     return (
-        <form action={dispatch} className="space-y-3">
+        <form action={handleSubmit} className="space-y-3">
             <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
                 <h1 className={`mb-3 text-2xl`}>
                     Sign up to continue.
@@ -114,27 +127,37 @@ export default function SignupForm() {
                             </div>
 
                             <Button
-                                formAction={resetTimer}
+                                formAction={handleOther}
                                 className="min-w-20"
-                                aria-disabled={timerRunning}
+                                aria-disabled={running && sending}
                             >
-                                {timerRunning ? `${time}` : 'get code'}
+                                {running ? time : sending ? 'sending' : 'get code'}
                             </Button>
                         </div>
                     </div>
                 </div>
-                <SignButton/>
+                <Button className="mt-4 w-full" aria-disabled={pending}>
+                    Sign up <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50"/>
+                </Button>
                 <div
                     className="flex h-8 items-end space-x-1"
                     aria-live="polite"
                     aria-atomic="true"
                 >
-                    {errorMessage && (
-                        <>
-                            <ExclamationCircleIcon className="h-5 w-5 text-red-500"/>
-                            <p className="text-sm text-red-500">{errorMessage}</p>
-                        </>
-                    )}
+                    <>
+                        {msg && msg.success && msg.msg && (
+                            <>
+                                <CheckBadgeIcon className="h-5 w-5 text-green-500"/>
+                                <p className="text-green-500">{msg.msg}</p>
+                            </>
+                        )}
+                        {msg && !msg.success && (
+                            <>
+                                <ExclamationCircleIcon className="h-5 w-5 text-red-500"/>
+                                <p className="text-red-500">{msg.msg}</p>
+                            </>
+                        )}
+                    </>
                 </div>
                 <div className="flex justify-between">
                     <div className="flex items-center">
@@ -145,16 +168,6 @@ export default function SignupForm() {
                 </div>
             </div>
         </form>
-    );
-}
-
-function SignButton() {
-    const {pending} = useFormStatus();
-
-    return (
-        <Button className="mt-4 w-full" aria-disabled={pending}>
-            Sign up <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50"/>
-        </Button>
     );
 }
 
@@ -169,5 +182,5 @@ function Button({children, className, ...rest}) {
         >
             {children}
         </button>
-    );
+    )
 }

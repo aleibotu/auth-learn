@@ -2,17 +2,22 @@
 import {Resend} from "resend";
 import {db} from "@/lib/db";
 import {getUserByEmail} from "@/data/user";
+import {SendEmailSchema} from "@/schemas";
 
-export const sendEmail = async (formData, token) => {
+export const sendEmail = async (formData) => {
     const email = formData.get('email');
 
-    // todo check use zod
+    const validatedFields = SendEmailSchema.safeParse({email})
+
+    if (!validatedFields.success) {
+        return {success: false, msg: 'Invalid fields'}
+    }
 
     const user = await getUserByEmail(email)
 
-    if (user) return 'email already in use'
+    if (user) return {success: false, msg: 'email already in use'}
 
-    // email verification
+    // email verification six digital
     const code = Math.floor(100000 + Math.random() * 900000);
 
     const expires = new Date(new Date().getTime() + 2 * 60 * 1000)
@@ -28,7 +33,9 @@ export const sendEmail = async (formData, token) => {
                     your code is ${code}, expire on ${expires}
                 </p>
         `
-    });
+    }).then(() => {
+        // set true or false msg.
+    })
 
     const register = await db.verificationCode.findUnique({where: {email}});
 
@@ -38,6 +45,6 @@ export const sendEmail = async (formData, token) => {
         await db.verificationCode.create({data: {email, code, expires_at: expires}})
     }
 
-    return 'email sent'
+    return {success: true, msg: 'email sent'}
 
 }

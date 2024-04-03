@@ -5,23 +5,23 @@ import {DEFAULT_LOGIN_REDIRECT} from "@/routes";
 import {AuthError} from "next-auth";
 import {getUserByEmail} from "@/data/user";
 
-export const login = async (prevState, formData) => {
+export const login = async (formData) => {
     const email = formData.get('email')
     const password = formData.get('password')
     const validatedFields = LoginSchema.safeParse({email, password});
 
     if(!validatedFields) {
-        return {error: 'Invalid fields'}
+        return {success: false, msg: 'Invalid fields'}
     }
 
     const existingUser = await getUserByEmail(email)
 
     if(!existingUser || !existingUser.email || !existingUser.password) {
-        return 'Email does not exist'
+        return {success: false, msg: 'Email does not exist'}
     }
 
     if(!existingUser.emailVerified) {
-        return 'check your count'
+        return {success: false, msg: 'check your count'}
     }
 
     try {
@@ -34,9 +34,9 @@ export const login = async (prevState, formData) => {
         if(error instanceof AuthError) {
             switch (error.type) {
                 case "CredentialsSignin":
-                    return 'Invalid credentials'
+                    return {success: false, msg: 'Invalid credentials'}
                 default:
-                    return 'something went wrong'
+                    return {success: false, msg: 'something went wrong'}
             }
         }
         throw error
