@@ -7,7 +7,7 @@ import {register} from "@/actions/register";
 import {sendEmail} from "@/actions/sendEmail";
 import {useEffect, useState, useTransition} from "react";
 
-export default function SignupForm() {
+export default function ResetForm() {
     const [time, setTime] = useState(60);
     const [running, setRunning] = useState(false);
     const [msg, setMsg] = useState({success: true, msg: null});
@@ -60,7 +60,7 @@ export default function SignupForm() {
         <form action={handleSubmit} className="space-y-3">
             <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
                 <h1 className={`mb-3 text-2xl`}>
-                    注册账号
+                    重置密码
                 </h1>
                 <div className="w-full">
                     <div>
@@ -88,7 +88,7 @@ export default function SignupForm() {
                             className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                             htmlFor="password"
                         >
-                            密码
+                            新密码
                         </label>
                         <div className="relative">
                             <input
@@ -136,7 +136,7 @@ export default function SignupForm() {
                     </div>
                 </div>
                 <Button className="mt-4 w-full tracking-wide" aria-disabled={pending}>
-                    注册并登录 <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50"/>
+                    重置并登录 <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50"/>
                 </Button>
                 <div
                     className="flex h-8 items-end space-x-1"

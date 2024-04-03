@@ -23,7 +23,7 @@ export default function LoginForm() {
         <form action={handleSubmit} className="space-y-3">
             <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
                 <h1 className={`mb-3 text-2xl`}>
-                    Log in to continue.
+                    登录以继续
                 </h1>
                 <div className="w-full">
                     <div>
@@ -31,7 +31,7 @@ export default function LoginForm() {
                             className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                             htmlFor="email"
                         >
-                            Email
+                            邮箱
                         </label>
                         <div className="relative">
                             <input
@@ -51,7 +51,7 @@ export default function LoginForm() {
                             className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                             htmlFor="password"
                         >
-                            Password
+                            密码
                         </label>
                         <div className="relative">
                             <input
@@ -68,8 +68,8 @@ export default function LoginForm() {
                         </div>
                     </div>
                 </div>
-                <Button className="mt-4 w-full" aria-disabled={pending}>
-                    Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50"/>
+                <Button className="mt-4 w-full tracking-wide" aria-disabled={pending}>
+                    立即登录 <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50"/>
                 </Button>
                 <div
                     className="flex h-8 items-end space-x-1"
@@ -91,12 +91,14 @@ export default function LoginForm() {
                         )}
                     </>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                     <div className="flex items-center">
-                        <label htmlFor="rememberLogIn" className="text-sm pr-1 text-gray-500">记住登录</label>
-                        <input id="rememberLogIn" type="checkbox"/>
+                        <Link className="text-blue-500" href="/auth/reset"> 忘记密码 </Link>
                     </div>
-                    <Link className="text-blue-500" href="/auth/register">register</Link>
+                    <div>
+                        没有账号? 立即
+                        <Link className="text-blue-500" href="/auth/register">注册 </Link>
+                    </div>
                 </div>
             </div>
         </form>
